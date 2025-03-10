@@ -13,7 +13,6 @@ fi
 # Run image
 docker_container=$(docker run --rm -d -p 6400:6400 todo)
 error=$?
-pid=$!
 if [[ $error -ne 0 ]]; then
     echo "Failed to run docker image"
     exit 1
@@ -23,13 +22,18 @@ fi
 sleep 10
 
 # Check that the health endpoint is returning 200
-curl -s -o /dev/null -w "%{http_code}" http://localhost:6400/api/v1/health | grep 200
-error=$?
-if [[ $error -ne 0 ]]; then
+response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:6400/api/v1/health")
+
+if [[ "$response" != "200" ]]; then
     echo "Failed to get 200 from health endpoint"
+    
+    # 🛠️ **打印 Flask 容器日志，看看发生了什么错误**
+    echo "===== Flask 容器日志 ====="
+    docker logs ${docker_container}
+
+    # **确保终止 GitHub Actions**
     exit 1
 fi
 
-# Kill docker conainer
+# Kill docker container
 docker stop ${docker_container}
-
