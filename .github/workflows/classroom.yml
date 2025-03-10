@@ -13,6 +13,14 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    - name: Cleanup Docker
+      run: 
+        docker compose down || true
+        docker ps -q | xargs -r docker stop || true
+        docker ps -aq | xargs -r docker rm || true
+        docker network prune -f || true
+        docker volume prune -f || true
+        docker system prune -af || true
     - name: Correct Project Structure
       id: correct-project-structure
       uses: classroom-resources/autograding-command-grader@v1
